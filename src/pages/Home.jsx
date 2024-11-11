@@ -1,146 +1,174 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import {
+  Background,ReactFlow,Controls,useReactFlow,ReactFlowProvider,Panel} from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
+import Sidebar from "../components/Sidebar.jsx";
+import {
+  InputNode,
+  OutputNode,
+  LLMNode,
+  nodeTypes,
+} from "../components/Nodes.jsx";
+import Navbar from "../components/Navbar";
+import { useWorkflow } from "../context/WorkflowContext.jsx";
 
-import { addEdge, Background, ReactFlow, useEdgesState, useNodesState,Panel, ControlButton, Controls } from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
-import inputicon from "../assets/inputicon.svg"
-import llmicon from "../assets/llmicon.svg"
-import outputicon from "../assets/outputicon.svg"
-import Vector from "../assets/Vector.svg";
-import { InputNode,OutputNode,LLMNode,nodeTypes,TextUpdaterNode } from '../components/Nodes.jsx';
-
-import Navbar from '../components/Navbar';
-
-
-
-
-
-
-// const initialEdges = [
-//   // { id: 'e1-2', source: '1', target: '2' },
-//   // { id: 'e2-3', source: '2', target: '3', animated: true },
-// ];
-
-   
+let id = 0;
+const getId = () => `dndnode_${id++}`;
 
 const Home = () => {
+  return (
+    <ReactFlowProvider>
+      <Llmscreen />
+    </ReactFlowProvider>
+  );
+};
 
+const Llmscreen = () => {
+  const [type, setType] = useState(null);
+  const reactFlowWrapper = useRef(null);
+
+  const {nodes, edges, setNodes, setEdges, onNodesChange, onEdgesChange, onConnect} = useWorkflow();
+  const [nodeData, setNodeData] = useState({});
   
-  
-  const [data,setData] = useState({
-    input : "",
-  })
-  
-  const onchange = (param, value) => {
-    setData((prev) => ({
-      ...prev,
-      [param]: value,  // Use dynamic key to set the property
+
+  const { screenToFlowPosition } = useReactFlow();
+
+  const updateNodeData = (id, param, value) => {
+    setNodeData((prevData) => ({
+      ...prevData,
+      
+        [param]: value,
+      
     }));
+
+    setNodes((nds) =>
+      nds.map((node) => {
+        if (node.id === id) {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              [param]: value,
+            },
+          };
+        }
+        return node;
+      })
+    );
   };
 
+  const onDragOver = useCallback((event) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
 
-  const initialNodes = [
-    {
-      id: 'node-1',
-      type: 'textUpdater',
-      position: { x: 0, y: 0 },
-      data: { value: 123 },
+  const onDrop = useCallback(
+    (event) => {
+      event.preventDefault();
+      if (!type) return;
+
+      const position = screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      const nodeId = getId();
+      var newNode;
+      if(type==='inputnode'){
+      newNode = {
+        id: nodeId,
+        type,
+        position,
+        data: {
+          label: `${type}`,
+          input:'',
+          onChange: (param, value) => updateNodeData(nodeId, param, value), // Pass the update function
+        },
+      };}
+      else if(type==='llmnode'){
+      newNode = {
+        id: nodeId,
+        type,
+        position,
+        data: {
+          label: `${type}`,
+          model: "",
+          apiBase: "",
+          apiKey: "",
+          maxTokens: "",
+          temperature: "",
+          onChange: (param, value) => updateNodeData(nodeId, param, value), // Pass the update function
+        },
+      };}
+      else{
+      newNode = {
+        id: nodeId,
+        type,
+        position,
+        data: {
+          label: `${type}`,
+          output : "",
+          onChange: (param, value) => updateNodeData(nodeId, param, value), // Pass the update function
+        },
+      };}
+
+      setNodes((nds) => nds.concat(newNode));
+      setType(null); // Reset node type after drop
     },
-    {
-      id: 'node-2',
-      type:'inputnode',
-      position : {
-        x:0, y:100
-      },
-      data : {
-        input : data.input,
-        onChange: onchange,
-      }
-    },
-    {
-      id: 'node-3',
-      type:'llmnode',
-      position : {
-        x:50, y:200
-      },
-      data : {
-        input : data.input,
-        onChange: onchange,
-      }
-    }
-  ];
-
-
-  const [nodes,setNodes,onNodesChange] = useNodesState(initialNodes);
-  const [edges,setEdges,onEdgesChange] = useEdgesState([]);
-
-
-  
-
- 
-
-
-  const onConnect = useCallback(
-    (params) =>
-      setEdges((eds) =>
-        addEdge({ ...params, type: 'straight', animated: true }, eds)
-      ),
-    [setEdges]
+    [screenToFlowPosition, type]
   );
 
-  const nodetypes = useMemo(() => ({ textUpdater: TextUpdaterNode,inputnode : InputNode,llmnode : LLMNode }), []);
+  const onDragStart = (event, nodeType) => {
+    setType(nodeType);
+    event.dataTransfer.effectAllowed = 'move';
+  };
 
+  const isValidConnection = (connection) => {
+    const { source, target } = connection;
+    
+    // Get the types of source and target nodes
+    const sourceNode = nodes.find(node => node.id === source);
+    const targetNode = nodes.find(node => node.id === target);
+  
+    if (!sourceNode || !targetNode) return false; // In case nodes are missing, fail validation
+  
+    // Validation rules
+    if (sourceNode.type === 'inputnode' && targetNode.type === 'llmnode') return true;
+    if (sourceNode.type === 'llmnode' && targetNode.type === 'outputnode') return true;
+  
+    // For any other combination, return false
+    return false;
+  };
 
   return (
-    <div className=' w-[100vw] h-[93vh] ' >
-        <Navbar />
-        <ReactFlow nodes={nodes} edges={edges}  style={{backgroundColor : 'rgba(0,0,0,0.1)'}}
-        // nodeTypes={nodeTypes}
-        nodeTypes={nodetypes}
-         onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect} fitView>
-          <div className=' h-full relative'>
-
+    <div className=" w-[100vw] h-[93vh] " ref={reactFlowWrapper}>
+      <Navbar />
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        style={{ backgroundColor: "rgba(0,0,0,0.1)" }}
+        nodeTypes={nodeTypes}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        fitView
+        onDrop={onDrop}
+        onDragOver={onDragOver}
+        isValidConnection={isValidConnection}
+      >
+        <div className=" h-full relative">
           <Panel position="" className="flex items-center h-[100%]">
-          <div className=' bg-white w-[250px] h-[93%] ml-4 rounded-[20px] flex flex-col border-[1px] border-[#E4E8EE] -mt-6 py-5 px-6'>
-            <span className=' text-[18px] font-semibold'>
-            Components
-            </span>
-            <span className=' w-full h-[1px] my-4 bg-[rgba(0,0,0,0.2)]'></span>
-            <span className=' text-[rgba(68,68,68,0.5)] text-sm'>Drag and Drop</span>
-            <div className='flex justify-between items-center mt-4 p-2 px-3 border-[1px] rounded-[5px]  border-[rgba(148,163,184,1)]'>
-              <div className=' flex justify-start gap-2 items-center'>
-              <img src={inputicon}/>
-              <span className=' text-[12px] font-[400]'>Input</span>
-              </div>
-              <img src={Vector} />
-            </div>
-            <div className='flex justify-between items-center mt-4 p-2 px-3 border-[1px] rounded-[5px] border-[rgba(148,163,184,1)]'>
-              <div className=' flex justify-start gap-2 items-center'>
-              <img src={llmicon}/>
-              <span className=' text-[12px] font-[400]'>LLM Engine</span>
-              </div>
-              <img src={Vector} />
-            </div>
-            <div className='flex justify-between items-center mt-4 p-2 px-3 border-[1px] rounded-[5px] border-[rgba(148,163,184,1)]'>
-              <div className=' flex justify-start gap-2 items-center'>
-              <img src={outputicon}/>
-              <span className=' text-[12px] font-[400]'>Output</span>
-              </div>
-              <img src={Vector} />
-            </div>
-          </div>
-        </Panel>
-          </div>
-            <Controls position='bottom-left' style={{left : 300}}/>
-          <Background variant="dots" gap={12} size={2}  color='rgba(0,0,0,0.2)' />
-        </ReactFlow >
-        
-
+            <Sidebar onDragStart={onDragStart} />
+          </Panel>
+        </div>
+        <Controls position="bottom-left" style={{ left: 300 }} />
+        <Background variant="dots" gap={12} size={2} color="rgba(0,0,0,0.2)" />
+      </ReactFlow>
     </div>
-  )
-}
+  );
+};
 
 
 
 
 export default Home;
-

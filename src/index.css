@@ -3,25 +3,4 @@
 @tailwind utilities;
 
 
-.text-updater-node {
-   
-    border: 1px solid #eee;
-    padding: 5px;
-    border-radius: 5px;
-    background: white;
-  }
-   
-  .text-updater-node label {
-    display: block;
-    color: #777;
-    font-size: 12px;
-  }
-
-  .text-updater-node .input-field{
-    border : 1px solid #b2b2b2;
-    font-size: small;
-    padding: 4px;
-
-    
-  }
 
