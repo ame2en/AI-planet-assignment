@@ -49,6 +49,9 @@ export const WorkflowProvider = ({ children }) => {
 
   const onConnect = (params) => setEdges((eds) => addEdge({ ...params, type: 'straight', animated: true }, eds));
 
+
+  
+
   return (
     <WorkflowContext.Provider value={{ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesChange, onConnect }}>
       {children}

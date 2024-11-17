@@ -28,18 +28,18 @@ const Llmscreen = () => {
   const reactFlowWrapper = useRef(null);
 
   const {nodes, edges, setNodes, setEdges, onNodesChange, onEdgesChange, onConnect} = useWorkflow();
-  const [nodeData, setNodeData] = useState({});
+  // const [nodeData, setNodeData] = useState({});
   
 
   const { screenToFlowPosition } = useReactFlow();
 
   const updateNodeData = (id, param, value) => {
-    setNodeData((prevData) => ({
-      ...prevData,
+    // setNodeData((prevData) => ({
+    //   ...prevData,
       
-        [param]: value,
+    //     [param]: value,
       
-    }));
+    // }));
 
     setNodes((nds) =>
       nds.map((node) => {
@@ -55,6 +55,84 @@ const Llmscreen = () => {
         return node;
       })
     );
+  };
+  
+  
+  const callOpenAiApi = async () => {
+
+    const inputNode = nodes.find((node) => node.type === 'inputnode');
+    const llmNode = nodes.find((node) => node.type === 'llmnode');
+    const outputNode = nodes.find((node) => node.type === 'outputnode');
+  
+    if (!inputNode || !llmNode || !outputNode) {
+      console.error("Workflow is missing required nodes.");
+      return;
+    }
+
+    const inputToLlm = edges.some(
+      (edge) => edge.source === inputNode.id && edge.target === llmNode.id
+    );
+    const llmToOutput = edges.some(
+      (edge) => edge.source === llmNode.id && edge.target === outputNode.id
+    );
+  
+    if (!inputToLlm || !llmToOutput) {
+      console.error("Workflow nodes are not correctly connected.");
+      return ;
+    }
+  
+    const input = inputNode.data.input;
+    const apiKey = llmNode.data.apiKey;
+    const model = llmNode.data.model ; 
+    const temperature = llmNode.data.temperature ;
+    const maxTokens = llmNode.data.maxTokens ;
+  
+    if (!apiKey) {
+      console.error("API Key is missing in the LLM Node.");
+      return;
+    }
+  
+    const url = "https://api.openai.com/v1/completions";
+  
+    try {
+      const response = await axios.post(
+        url,
+        {
+          model,
+          prompt: input,
+          temperature,
+          max_tokens: maxTokens,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          },
+        }
+      );
+  
+      const result = response.data.choices[0].text;
+  
+      
+      setNodes((nds) =>
+        nds.map((node) => {
+          if (node.id === outputNode.id) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                output: result, 
+              },
+            };
+          }
+          return node;
+        })
+      );
+  
+      console.log("OpenAI API Response:", result);
+    } catch (error) {
+      console.error("Error calling OpenAI API:", error);
+    }
   };
 
   const onDragOver = useCallback((event) => {
@@ -82,7 +160,7 @@ const Llmscreen = () => {
         data: {
           label: `${type}`,
           input:'',
-          onChange: (param, value) => updateNodeData(nodeId, param, value), // Pass the update function
+          onChange: (param, value) => updateNodeData(nodeId, param, value), 
         },
       };}
       else if(type==='llmnode'){
@@ -97,7 +175,7 @@ const Llmscreen = () => {
           apiKey: "",
           maxTokens: "",
           temperature: "",
-          onChange: (param, value) => updateNodeData(nodeId, param, value), // Pass the update function
+          onChange: (param, value) => updateNodeData(nodeId, param, value), 
         },
       };}
       else{
@@ -108,12 +186,12 @@ const Llmscreen = () => {
         data: {
           label: `${type}`,
           output : "",
-          onChange: (param, value) => updateNodeData(nodeId, param, value), // Pass the update function
+          onChange: (param, value) => updateNodeData(nodeId, param, value), 
         },
       };}
 
       setNodes((nds) => nds.concat(newNode));
-      setType(null); // Reset node type after drop
+      setType(null); 
     },
     [screenToFlowPosition, type]
   );
@@ -126,23 +204,22 @@ const Llmscreen = () => {
   const isValidConnection = (connection) => {
     const { source, target } = connection;
     
-    // Get the types of source and target nodes
     const sourceNode = nodes.find(node => node.id === source);
     const targetNode = nodes.find(node => node.id === target);
   
-    if (!sourceNode || !targetNode) return false; // In case nodes are missing, fail validation
+    if (!sourceNode || !targetNode) return false; 
   
-    // Validation rules
     if (sourceNode.type === 'inputnode' && targetNode.type === 'llmnode') return true;
     if (sourceNode.type === 'llmnode' && targetNode.type === 'outputnode') return true;
   
-    // For any other combination, return false
     return false;
   };
 
+
+
   return (
     <div className=" w-[100vw] h-[93vh] " ref={reactFlowWrapper}>
-      <Navbar />
+      <Navbar  callOpenAiApi={callOpenAiApi}/>
       <ReactFlow
         nodes={nodes}
         edges={edges}

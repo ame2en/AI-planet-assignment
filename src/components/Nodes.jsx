@@ -44,7 +44,8 @@ const InputNode = ({ data }) => {
           border: "1px solid black",
           backgroundColor: "white",
         }}
-      />
+      ><span className=" absolute -left-[100px] -top-3" >LLM Engine</span></Handle>
+       
     </>
   );
 };
@@ -145,7 +146,9 @@ const LLMNode = ({ data }) => {
           border: "1px solid black",
           backgroundColor: "white",
         }}
-      />
+      >
+        <span className=" absolute left-[20px] ">Input Node</span>
+        </Handle>
 
       <Handle
         type="source"
@@ -159,7 +162,9 @@ const LLMNode = ({ data }) => {
           border: "1px solid black",
           backgroundColor: "white",
         }}
-      />
+      >
+      <span className=" absolute right-[30px] -bottom-4 ">Output Node</span>
+      </Handle>
     </div>
   );
 };
@@ -178,12 +183,12 @@ const OutputNode = ({ data }) => {
         <p className="text-sm bg-[rgba(238,244,255,1)] text-[rgba(102,102,102,1)] p-3">
           Write the input/ question you want to ask
         </p>
-        <div className=" mt-5 mx-5">
+        <div className=" mt-10 mx-5  ">
           <span className="font-medium text-gray-700 text-sm">
             Output Response
           </span>
-          <div className="mt-3 outline-none  block w-full rounded-md p-3 px-4 border-[1px] border-[rgba(102, 102, 102, 0.35)] shadow-sm placeholder:text-sm ">
-            {data.output || "Output Response will be shown here"}
+          <div className="mt-3 outline-none   block w-full rounded-md p-3 px-4 border-[1px] border-[rgba(102, 102, 102, 0.35)] shadow-sm placeholder:text-sm ">
+            {data.output || "Output Response will be shown here "}
           </div>
         </div>
       </div>
@@ -192,14 +197,16 @@ const OutputNode = ({ data }) => {
         position={Position.Left}
         id="b"
         style={{
-          top: 280,
+          top : 130,
           width: "10px",
           height: "10px",
           borderRadius: "50%",
           border: "1px solid black",
           backgroundColor: "white",
         }}
-      />
+        >
+        <span className=" absolute left-[30px] -bottom-3  w-[100px]">LLM Engine</span>
+        </Handle>
     </>
   );
 };
