@@ -25,6 +25,7 @@ const Home = () => {
 
 const Llmscreen = () => {
   const [type, setType] = useState(null);
+  const [error, setError] = useState("ameen is backk"); 
   const reactFlowWrapper = useRef(null);
 
   const {nodes, edges, setNodes, setEdges, onNodesChange, onEdgesChange, onConnect} = useWorkflow();
@@ -57,12 +58,18 @@ const Llmscreen = () => {
     );
   };
   
-  
-  const callOpenAiApi = async () => {
+  const handleRunClick = () => {
+    // Pass nodes and edges to the API function
+    callOpenAiApi({ nodes, edges, setNodes });
+  };
+
+  const callOpenAiApi = async ({nodes,edges,setNodes}) => {
 
     const inputNode = nodes.find((node) => node.type === 'inputnode');
     const llmNode = nodes.find((node) => node.type === 'llmnode');
     const outputNode = nodes.find((node) => node.type === 'outputnode');
+
+
   
     if (!inputNode || !llmNode || !outputNode) {
       console.error("Workflow is missing required nodes.");
@@ -80,6 +87,10 @@ const Llmscreen = () => {
       console.error("Workflow nodes are not correctly connected.");
       return ;
     }
+
+
+
+    
   
     const input = inputNode.data.input;
     const apiKey = llmNode.data.apiKey;
@@ -219,7 +230,7 @@ const Llmscreen = () => {
 
   return (
     <div className=" w-[100vw] h-[93vh] " ref={reactFlowWrapper}>
-      <Navbar  callOpenAiApi={callOpenAiApi}/>
+      <Navbar  callOpenAiApi={handleRunClick}/>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -228,11 +239,16 @@ const Llmscreen = () => {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
-        fitView
+        
         onDrop={onDrop}
         onDragOver={onDragOver}
         isValidConnection={isValidConnection}
-      >
+        >
+        {error && <div className=" relative">
+          
+          <Panel position="top-right" >ameen
+            <div className=""></div>
+            </Panel></div>}
         <div className=" h-full relative">
           <Panel position="" className="flex items-center h-[100%]">
             <Sidebar onDragStart={onDragStart} />

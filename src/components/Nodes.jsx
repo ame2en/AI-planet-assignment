@@ -44,7 +44,7 @@ const InputNode = ({ data }) => {
           border: "1px solid black",
           backgroundColor: "white",
         }}
-      ><span className=" absolute -left-[100px] -top-3" >LLM Engine</span></Handle>
+      ><span className=" absolute -left-[100px] -top-3 text-sm" >LLM Engine</span></Handle>
        
     </>
   );
@@ -147,7 +147,7 @@ const LLMNode = ({ data }) => {
           backgroundColor: "white",
         }}
       >
-        <span className=" absolute left-[20px] ">Input Node</span>
+        <span className=" absolute left-[20px] text-sm">Input Node</span>
         </Handle>
 
       <Handle
@@ -163,7 +163,7 @@ const LLMNode = ({ data }) => {
           backgroundColor: "white",
         }}
       >
-      <span className=" absolute right-[30px] -bottom-4 ">Output Node</span>
+      <span className=" absolute right-[30px] -bottom-4 text-sm">Output Node</span>
       </Handle>
     </div>
   );
@@ -188,7 +188,7 @@ const OutputNode = ({ data }) => {
             Output Response
           </span>
           <div className="mt-3 outline-none   block w-full rounded-md p-3 px-4 border-[1px] border-[rgba(102, 102, 102, 0.35)] shadow-sm placeholder:text-sm ">
-            {data.output || "Output Response will be shown here "}
+            {data.output || <span className=" opacity-50">Output Response will be shown here</span> }
           </div>
         </div>
       </div>
@@ -205,7 +205,7 @@ const OutputNode = ({ data }) => {
           backgroundColor: "white",
         }}
         >
-        <span className=" absolute left-[30px] -bottom-3  w-[100px]">LLM Engine</span>
+        <span className=" absolute left-[30px] -bottom-3  w-[100px] text-sm">LLM Engine</span>
         </Handle>
     </>
   );
