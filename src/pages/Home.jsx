@@ -97,21 +97,22 @@ const Llmscreen = () => {
     const model = llmNode.data.model ; 
     const temperature = llmNode.data.temperature ;
     const maxTokens = llmNode.data.maxTokens ;
+    const url = llmNode.data.apiBase;
   
     if (!apiKey) {
       console.error("API Key is missing in the LLM Node.");
       return;
     }
   
-    const url = "https://api.openai.com/v1/completions";
+
   
     try {
       const response = await axios.post(
         url,
         {
-          model,
+          model : model,
           prompt: input,
-          temperature,
+          temperature : temperature,
           max_tokens: maxTokens,
         },
         {
@@ -249,6 +250,9 @@ const Llmscreen = () => {
           <Panel position="top-right" >ameen
             <div className=""></div>
             </Panel></div>}
+
+
+        
         <div className=" h-full relative">
           <Panel position="" className="flex items-center h-[100%]">
             <Sidebar onDragStart={onDragStart} />
@@ -265,3 +269,5 @@ const Llmscreen = () => {
 
 
 export default Home;
+
+

@@ -46,6 +46,7 @@ const WorkflowContext = createContext();
 export const WorkflowProvider = ({ children }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  
 
   const onConnect = (params) => setEdges((eds) => addEdge({ ...params, type: 'straight', animated: true }, eds));
 
